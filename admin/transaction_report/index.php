@@ -483,6 +483,7 @@ function newDateFormatback($date)
               <th>No</th>
               <th>Tanggal</th>
               <th>Status</th>
+              <th>Kategori</th>
               <th>Nama Pengguna</th>
               <th>Produk</th>
               <th>Harga</th>
@@ -496,19 +497,30 @@ function newDateFormatback($date)
           <tbody>
 
             <?php
-            if (empty($_GET['progres']) || $_GET['progres'] == "") {
-              $prog = "";
-            } else {
-              $prog = "AND tipe_progress='$_GET[progres]'";
+            $filter = [];
+
+            if (!empty($_GET['progres'])) {
+              $filter[] = "a.tipe_progress = '" . mysqli_real_escape_string($server, $_GET['progres']) . "'";
             }
+
+            if (!empty($_GET['kategori'])) {
+              $filter[] = "c.id_kategori = '" . mysqli_real_escape_string($server, $_GET['kategori']) . "'";
+            }
+
+            $where_filter = implode(" AND ", $filter);
+            $where_filter = $where_filter ? " AND $where_filter" : "";
+
             $invoice = $server->query(
-              " SELECT a.*,b.nama_lengkap,c.judul,c.harga FROM `invoice` a
-                      LEFT JOIN akun b ON a.id_user = b.id
-                      LEFT JOIN iklan c ON a.id_iklan = c.id
-                      WHERE date(a.waktu)>='$_GET[dt]' AND date(a.waktu)<='$_GET[st]' 
-                      $prog
-                    "
+              "SELECT a.*, b.nama_lengkap, c.judul, c.harga, d.nama AS kategori 
+   FROM invoice a
+   LEFT JOIN akun b ON a.id_user = b.id
+   LEFT JOIN iklan c ON a.id_iklan = c.id
+   LEFT JOIN kategori d ON c.id_kategori = d.id
+   WHERE date(a.waktu) >= '" . $_GET['dt'] . "' 
+     AND date(a.waktu) <= '" . $_GET['st'] . "'
+     $where_filter"
             );
+
             $no = 1;
             $subtot = 0;
             $td = 0;
@@ -516,10 +528,12 @@ function newDateFormatback($date)
             $tot = 0;
             while ($data = mysqli_fetch_assoc($invoice)) {
             ?>
+              <!-- <?php print_r($data); ?> -->
               <tr>
                 <td class="text-center"><?= $no++ ?></td>
                 <td><?= newDateTime($data['waktu']) ?></td>
                 <td class="text-center"><?= $data['tipe_progress'] ?></td>
+                <td class="text-center"><?= $data['kategori'] ?></td>
                 <td><?= $data['nama_lengkap'] ?></td>
                 <td><?= $data['judul'] ?></td>
                 <td class="text-right"><?= number_format($data['harga'], 0, ",", ".") ?></td>
@@ -555,7 +569,7 @@ function newDateFormatback($date)
           <div>
           </div>
           <div>
-            <a href="print/print_report_range.php?dt=<?= $_GET['dt'] ?>&st=<?= $_GET['st'] ?>&progres=<?= $_GET['progres'] ?>" class="button-43" style="margin-top:30px;">Cetak PDF &nbsp;<i class="fa fa-file-pdf"></i></a>
+            <a href="print/print_report_range.php?dt=<?= $_GET['dt'] ?>&st=<?= $_GET['st'] ?>&progres=<?= $_GET['progres'] ?>&kategori=<?= $_GET['kategori'] ?>" class="button-43" style="margin-top:30px;">Cetak PDF &nbsp;<i class="fa fa-file-pdf"></i></a>
           </div>
         </div>
       </div>
