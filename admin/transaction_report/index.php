@@ -96,6 +96,8 @@ function newDateFormatback($date)
     return "Tanggal Error";
   }
 }
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -439,6 +441,20 @@ function newDateFormatback($date)
               required />
           </div>
           <div>
+            <label for="kategori" class="formbold-form-label">Kategori</label>
+            <select class="formbold-form-input" name="kategori" id="kategori">
+              <option value="">Semua</option>
+              <?php
+              $get_kategori = $server->query("SELECT * FROM kategori ORDER BY nama ASC");
+              while ($kat = mysqli_fetch_assoc($get_kategori)) {
+                $selected = (isset($_GET['kategori']) && $_GET['kategori'] == $kat['id']) ? "selected" : "";
+                echo "<option value='{$kat['id']}' $selected>{$kat['nama']}</option>";
+              }
+              ?>
+            </select>
+          </div>
+
+          <div>
             <label for="city" class="formbold-form-label"> Progres</label>
             <select class="formbold-form-input" name="progres" id="exampleFormControlSelect1">
               <option value="">Semua</option>
@@ -547,6 +563,10 @@ function newDateFormatback($date)
   </div>
   <!-- JS -->
   <script src="../../assets/js/admin/transaction/index.js"></script>
+  <script>
+    $("[name='kategori']").val('<?= isset($_GET['kategori']) ? $_GET['kategori'] : '' ?>');
+  </script>
+
   <!-- JS -->
 </body>
 
