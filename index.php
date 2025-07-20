@@ -233,7 +233,7 @@ $page = 'HOME';
         <div class="flash_sale">
             <div class="title_flash_sale">
                 <div class="box_title_produk_terlaris">
-                    <p>Produk Terlaris</p>
+                    <p>Produk Terlaris!</p>
                 </div>
                 <!-- <a href="">
                     <div class="box_lihat_semua">
