@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PHPUnit">
+    <option name="directories">
+      <list>
+        <option value="$PROJECT_DIR$/assets/composer/google-api-client-php-7.4/tests" />
+        <option value="$PROJECT_DIR$/midtrans/tests" />
+        <option value="$PROJECT_DIR$/midtrans/tests/integration" />
+        <option value="$PROJECT_DIR$/assets/composer/midtrans-php-master/tests" />
+        <option value="$PROJECT_DIR$/assets/composer/midtrans-php-master/tests/integration" />
+      </list>
+    </option>
+  </component>
+</project>

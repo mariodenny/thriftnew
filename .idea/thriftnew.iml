@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/src" isTestSource="false" packagePrefix="Google\" />
+      <sourceFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/assets/composer/midtrans-php-master/Midtrans" isTestSource="false" packagePrefix="Midtrans\" />
+      <sourceFolder url="file://$MODULE_DIR$/assets/composer/midtrans-php-master/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/assets/composer/midtrans-php-master/tests/integration" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/Midtrans" isTestSource="false" packagePrefix="Midtrans\" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/test/integration" isTestSource="true" packagePrefix="Midtrans\" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/tests" isTestSource="true" packagePrefix="Midtrans\" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/tests/integration" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/tests/utility" isTestSource="true" packagePrefix="Midtrans\" />
+      <sourceFolder url="file://$MODULE_DIR$/midtrans/tests/utility/fixture" isTestSource="true" packagePrefix="Midtrans\" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/firebase/php-jwt" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/google/apiclient-services" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/google/auth" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/guzzlehttp/guzzle" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/guzzlehttp/promises" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/guzzlehttp/psr7" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/monolog/monolog" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/paragonie/constant_time_encoding" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/paragonie/random_compat" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/phpseclib/phpseclib" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/psr/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/psr/http-client" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/psr/http-message" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/psr/log" />
+      <excludeFolder url="file://$MODULE_DIR$/assets/composer/google-api-client-php-7.4/vendor/ralouphie/getallheaders" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
