@@ -65,7 +65,6 @@ function newDateTime($dateTime)
 </head>
 
 <body>
-
     <!-- Header Logo dan Judul -->
     <table style="width:100%;">
         <tr>
@@ -101,6 +100,7 @@ function newDateTime($dateTime)
         </thead>
         <tbody>
             <?php
+            // Build filter conditions
             $filter = [];
 
             if (!empty($_GET['progres'])) {
@@ -113,41 +113,58 @@ function newDateTime($dateTime)
 
             $where_filter = $filter ? " AND " . implode(" AND ", $filter) : "";
 
+            // Execute the query (FIXED: This was missing in the original code)
+            $invoice = $server->query(
+                "SELECT a.*, b.nama_lengkap, c.judul, c.harga, d.nama AS kategori 
+                FROM invoice a
+                LEFT JOIN akun b ON a.id_user = b.id
+                LEFT JOIN iklan c ON a.id_iklan = c.id
+                LEFT JOIN kategori d ON c.id_kategori = d.id
+                WHERE date(a.waktu) >= '" . mysqli_real_escape_string($server, $_GET['dt']) . "' 
+                AND date(a.waktu) <= '" . mysqli_real_escape_string($server, $_GET['st']) . "'
+                $where_filter
+                ORDER BY a.waktu DESC"
+            );
 
             $no = 1;
             $subtotal = $total_diskon = $total_ongkir = $total_final = 0;
             $count = mysqli_num_rows($invoice);
 
-            while ($data = mysqli_fetch_assoc($invoice)) {
-                $harga_total = $data['harga'] * $data['jumlah'];
-                $harga_final = $harga_total - $data['diskon_i'] + $data['harga_ongkir'];
+            if ($count > 0) {
+                while ($data = mysqli_fetch_assoc($invoice)) {
+                    $harga_total = $data['harga'] * $data['jumlah'];
+                    $harga_final = $harga_total - $data['diskon_i'] + $data['harga_ongkir'];
 
-                $subtotal += $harga_total;
-                $total_diskon += $data['diskon_i'];
-                $total_ongkir += $data['harga_ongkir'];
-                $total_final += $harga_final;
+                    $subtotal += $harga_total;
+                    $total_diskon += $data['diskon_i'];
+                    $total_ongkir += $data['harga_ongkir'];
+                    $total_final += $harga_final;
             ?>
-                <tr>
-                    <td class="text-center"><?= $no++ ?></td>
-                    <td><?= newDateTime($data['waktu']) ?></td>
-                    <td class="text-center"><?= $data['tipe_progress'] ?></td>
-                    <td><?= $data['nama_lengkap'] ?></td>
-                    <td><?= $data['judul'] ?></td>
-                    <td class="text-right"><?= number_format($data['harga'], 0, ",", ".") ?></td>
-                    <td class="text-center"><?= $data['jumlah'] ?></td>
-                    <td class="text-right"><?= number_format($harga_total, 0, ",", ".") ?></td>
-                    <td class="text-right"><?= number_format($data['diskon_i'], 0, ",", ".") ?></td>
-                    <td class="text-right"><?= number_format($data['harga_ongkir'], 0, ",", ".") ?></td>
-                    <td class="text-right"><?= number_format($harga_final, 0, ",", ".") ?></td>
-                </tr>
-            <?php } ?>
+                    <tr>
+                        <td class="text-center"><?= $no++ ?></td>
+                        <td><?= newDateTime($data['waktu']) ?></td>
+                        <td class="text-center"><?= $data['tipe_progress'] ?></td>
+                        <td class="text-center"><?= $data['kategori'] ?? 'N/A' ?></td>
+                        <td><?= $data['nama_lengkap'] ?? 'N/A' ?></td>
+                        <td><?= $data['judul'] ?? 'N/A' ?></td>
+                        <td class="text-right"><?= number_format($data['harga'], 0, ",", ".") ?></td>
+                        <td class="text-center"><?= $data['jumlah'] ?></td>
+                        <td class="text-right"><?= number_format($harga_total, 0, ",", ".") ?></td>
+                        <td class="text-right"><?= number_format($data['diskon_i'], 0, ",", ".") ?></td>
+                        <td class="text-right"><?= number_format($data['harga_ongkir'], 0, ",", ".") ?></td>
+                        <td class="text-right"><?= number_format($harga_final, 0, ",", ".") ?></td>
+                    </tr>
+            <?php
+                }
+            }
+            ?>
         </tbody>
 
         <?php if ($count > 0) { ?>
             <tfoot>
                 <tr>
-                    <th colspan="7" class="text-left">Total</th>
-                    <th class="text-right">Rp. <?= number_format($subtotal, 0, ",", ".") ?></th>
+                    <th colspan="8" class="text-left">Total</th>
+                    <th class="text-right"><?= number_format($subtotal, 0, ",", ".") ?></th>
                     <th class="text-right"><?= number_format($total_diskon, 0, ",", ".") ?></th>
                     <th class="text-right"><?= number_format($total_ongkir, 0, ",", ".") ?></th>
                     <th class="text-right"><?= number_format($total_final, 0, ",", ".") ?></th>
@@ -159,6 +176,7 @@ function newDateTime($dateTime)
     <?php if ($count == 0): ?>
         <div class="text-center" style="margin-top: 30px;">
             <h4>Data Kosong</h4>
+            <p>Tidak ada data transaksi untuk periode <?= newDate($_GET['dt']) ?> sampai <?= newDate($_GET['st']) ?></p>
         </div>
     <?php endif; ?>
 

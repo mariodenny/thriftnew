@@ -483,6 +483,20 @@ function newDateFormatback($date)
             </script>
           </div>
 
+          <div>
+            <label for="kategori" class="formbold-form-label">Kategori</label>
+            <select class="formbold-form-input" name="kategori" id="kategori">
+              <option value="">Semua</option>
+              <?php
+              $get_kategori = $server->query("SELECT * FROM kategori ORDER BY nama ASC");
+              while ($kat = mysqli_fetch_assoc($get_kategori)) {
+                $selected = (isset($_GET['kategori']) && $_GET['kategori'] == $kat['id']) ? "selected" : "";
+                echo "<option value='{$kat['id']}' $selected>{$kat['nama']}</option>";
+              }
+              ?>
+            </select>
+          </div>
+
 
           <div>
             <button type="submit" class="button-43" style="margin-top:30px;">Lihat Laporan</button>
@@ -490,49 +504,68 @@ function newDateFormatback($date)
         </div>
 
       </form>
-      <div <?= isset($_GET['bulan']) ? '' : 'style="display:none;"' ?>>
+      <div <?= isset($_GET['bulan']) && isset($_GET['tahun']) ? '' : 'style="display:none;"' ?>>
         <table class="demo-table w-100 mt-3">
           <thead>
             <tr>
               <th>No</th>
               <th>Tanggal</th>
+              <th>Kategori</th>
               <th>Total</th>
             </tr>
           </thead>
           <tbody>
 
             <?php
-            if (empty($_GET['progres']) || $_GET['progres'] == "") {
-              $prog = "";
-            } else {
-              $prog = "AND tipe_progress='$_GET[progres]'";
-            }
-            $invoice = $server->query(
-              " SELECT a.*,b.nama_lengkap,c.judul,c.harga,SUM(a.harga_i) sumh,date(a.waktu) datet FROM `invoice` a
-                      LEFT JOIN akun b ON a.id_user = b.id
-                      LEFT JOIN iklan c ON a.id_iklan = c.id
-                      WHERE month(a.waktu)='$_GET[bulan]' AND year(a.waktu)='$_GET[tahun]' 
-                      $prog
-                      GROUP BY date(a.waktu)
-                    "
-            );
-            $no = 1;
-            $subtot = 0;
-            while ($data = mysqli_fetch_assoc($invoice)) {
+            if (isset($_GET['bulan']) && isset($_GET['tahun'])) {
+              // Build filter conditions dynamically
+              $filter = [];
+
+              if (!empty($_GET['progres'])) {
+                $filter[] = "a.tipe_progress = '" . mysqli_real_escape_string($server, $_GET['progres']) . "'";
+              }
+
+              if (!empty($_GET['kategori'])) {
+                $filter[] = "c.id_kategori = '" . mysqli_real_escape_string($server, $_GET['kategori']) . "'";
+              }
+
+              $where_filter = implode(" AND ", $filter);
+              $where_filter = $where_filter ? " AND $where_filter" : "";
+
+              $invoice = $server->query(
+                "SELECT a.*, b.nama_lengkap, c.judul, c.harga, 
+                        COALESCE(d.nama, 'Tanpa Kategori') AS kategori, 
+                        SUM(a.harga_i) sumh, DATE(a.waktu) datet 
+                 FROM invoice a
+                 LEFT JOIN akun b ON a.id_user = b.id
+                 LEFT JOIN iklan c ON a.id_iklan = c.id
+                 LEFT JOIN kategori d ON c.id_kategori = d.id
+                 WHERE MONTH(a.waktu) = '" . mysqli_real_escape_string($server, $_GET['bulan']) . "' 
+                   AND YEAR(a.waktu) = '" . mysqli_real_escape_string($server, $_GET['tahun']) . "'
+                   $where_filter
+                 GROUP BY DATE(a.waktu), d.nama
+                 ORDER BY DATE(a.waktu) ASC, d.nama ASC"
+              );
+
+              $no = 1;
+              $subtot = 0;
+              while ($data = mysqli_fetch_assoc($invoice)) {
             ?>
-              <tr>
-                <td class="text-center"><?= $no++ ?></td>
-                <td><?= newDate($data['datet']) ?></td>
-                <td class="text-right"><?= number_format($data['sumh'], 0, ",", ".") ?></td>
-              </tr>
+                <tr>
+                  <td class="text-center"><?= $no++ ?></td>
+                  <td><?= newDate($data['datet']) ?></td>
+                  <td><?= $data['kategori'] ?></td>
+                  <td class="text-right"><?= number_format($data['sumh'], 0, ",", ".") ?></td>
+                </tr>
             <?php
-              $subtot += ($data['harga'] * $data['jumlah']);
+                $subtot += $data['sumh']; // Fixed: use sumh instead of harga * jumlah
+              }
             }
             ?>
           </tbody>
           <tfoot>
             <tr>
-              <th colspan="2">Sub Total</th>
+              <th colspan="3">Sub Total</th>
               <th class="text-right"><small>Rp</small><?= number_format($subtot, 0, ",", ".") ?></th>
             </tr>
           </tfoot>
@@ -545,7 +578,7 @@ function newDateFormatback($date)
           <div>
           </div>
           <div>
-            <a href="print/print_report_month.php?bulan=<?= $_GET['bulan'] ?>&tahun=<?= $_GET['tahun'] ?>&progres=<?= $_GET['progres'] ?>" class="button-43" style="margin-top:30px;">Cetak PDF &nbsp;<i class="fa fa-file-pdf"></i></a>
+            <a href="print/print_report_month.php?bulan=<?= isset($_GET['bulan']) ? $_GET['bulan'] : '' ?>&tahun=<?= isset($_GET['tahun']) ? $_GET['tahun'] : '' ?>&progres=<?= isset($_GET['progres']) ? $_GET['progres'] : '' ?>&kategori=<?= isset($_GET['kategori']) ? $_GET['kategori'] : '' ?>" class="button-43" style="margin-top:30px;">Cetak PDF &nbsp;<i class="fa fa-file-pdf"></i></a>
           </div>
         </div>
       </div>
