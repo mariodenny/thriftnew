@@ -1,15 +1,19 @@
 <?php
+session_start();
 include '../../config.php';
 
 $idproduk = $_POST['id_product'];
 
 // SELECT CART
 $select_cart = $server->query("SELECT * FROM `keranjang` WHERE `id_iklan`='$idproduk' AND `id_user`='$iduser'");
+print_r($select_cart);
 $cart_data = mysqli_fetch_assoc($select_cart);
+print_r($cart_data);
 
 // SELECT PRODUK
 $select_iklan = $server->query("SELECT * FROM `iklan` WHERE `id`='$idproduk'");
 $iklan_data = mysqli_fetch_assoc($select_iklan);
+print_r($iklan_data);
 
 // SELECT LOKASI USER
 $lokasi_user = $server->query("SELECT * FROM `lokasi_user` WHERE `id_user`='$iduser'");
@@ -29,6 +33,11 @@ if ($_POST['tipe_checkout'] == 'keranjang') {
     $diskon_k = $iklan_data['diskon'];
     $warna_k = $_POST['warna_k_val'];
     $ukuran_k = $_POST['ukuran_k_val'];
+
+    if ($jumlah > $iklan_data['stok']) {
+        echo "<script>alert('Jumlah melebihi stok yang tersedia! Silakan kurangi jumlah produk.'); window.history.back();</script>";
+        exit;
+    }
 }
 
 $time = date('Y-m-d H:i:s');

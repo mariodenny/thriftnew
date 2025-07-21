@@ -22,7 +22,7 @@ $page = 'KERANJANG';
     <!-- HEADER -->
 
     <!-- CONTENT -->
-   
+
     <div class="width">
         <?php
         if (isset($_COOKIE['login'])) {
@@ -54,7 +54,7 @@ $page = 'KERANJANG';
                                     <p>Total Harga</p>
                                     <h1><span>Rp</span> <?php echo number_format($harga_diskon_fs, 0, ".", "."); ?></h1>
                                 </div>
-                                <div class="bayar" id="button_checkout<?php echo $cart_data['id']; ?>" onclick="checkout('<?php echo $cart_data['id']; ?>', 'idkontol')">Checkout</div>
+                                <div class="bayar" id="button_checkout<?php echo $cart_data['id']; ?>" onclick="checkout('<?php echo $cart_data['id']; ?>')">Checkout</div>
                                 <div class="bayar loading_checkout" id="loading_checkout<?php echo $cart_data['id']; ?>"><img src="../assets/icons/loading-w.svg" alt=""></div>
                                 <div class="box_remove_cart" onclick="removecart(<?php echo $cart_data['id']; ?>)">
                                     <i class="ri-delete-bin-line" id="icon_remove_cart<?php echo $cart_data['id']; ?>"></i>

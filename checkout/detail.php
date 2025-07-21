@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 include '../config.php';
 include '../system/location/provinsi.php';
 require_once '../assets/composer/midtrans-php-master/Midtrans.php';
@@ -132,41 +134,41 @@ $data_norek = mysqli_fetch_assoc($select_norek);
 
     <!-- TRANSFER MANUAL -->
     <div class="back_transfer_manual" id="back_transfer_manual">
-    <div class="transfer_manual">
-        <!-- Ikon X untuk menutup -->
-        <span class="close_button" id="close_button">&times;</span>
+        <div class="transfer_manual">
+            <!-- Ikon X untuk menutup -->
+            <span class="close_button" id="close_button">&times;</span>
 
-        <h1>Selesaikan Pembayaran</h1>
-        <div class="box_transfer_manual">
-            <div class="isi_box_transfer_manual">
-                <h5>BANK <?php echo $data_norek['nama_bank']; ?></h5>
-                <h6>a.n <?php echo $data_norek['an']; ?></h6>
-            </div>
-            <div class="isi_box_transfer_manual">
-                <h4>Nomor Rekening</h4>
-                <h2><?php echo $data_norek['norek']; ?></h2>
-            </div>
-            <div class="isi_box_transfer_manual">
-                <h4>Harga Yang Dibayarkan</h4>
-                <h2>Rp <?php echo number_format($total_biaya, 0, ".", "."); ?></h2>
-            </div>
-            <div class="isi_box_transfer_manual">
-                <h4 class="p_input">Upload Bukti Transfer</h4>
-                <input type="file" class="input" id="inp_bukti_transfer" accept="image/*" onchange="change_image()">
-                <p class="alert_file_npng_bt" id="alert_file_npng_bt">Pastikan file berformat jpg/png</p>
-            </div>
-            <p></p>
-            <div class="isi_box_transfer_manual">
-                <div class="button" id="ubt" onclick="upload_bukti_transfer_manual('<?php echo $id_invoice; ?>', '<?php echo $data_norek['nama_bank']; ?>')">
-                    <p>Upload Bukti Transfer</p>
+            <h1>Selesaikan Pembayaran</h1>
+            <div class="box_transfer_manual">
+                <div class="isi_box_transfer_manual">
+                    <h5>BANK <?php echo $data_norek['nama_bank']; ?></h5>
+                    <h6>a.n <?php echo $data_norek['an']; ?></h6>
                 </div>
-                <div class="button" id="loading_ubt">
-                    <img src="../../assets/icons/loading-w.svg" alt="">
+                <div class="isi_box_transfer_manual">
+                    <h4>Nomor Rekening</h4>
+                    <h2><?php echo $data_norek['norek']; ?></h2>
+                </div>
+                <div class="isi_box_transfer_manual">
+                    <h4>Harga Yang Dibayarkan</h4>
+                    <h2>Rp <?php echo number_format($total_biaya, 0, ".", "."); ?></h2>
+                </div>
+                <div class="isi_box_transfer_manual">
+                    <h4 class="p_input">Upload Bukti Transfer</h4>
+                    <input type="file" class="input" id="inp_bukti_transfer" accept="image/*" onchange="change_image()">
+                    <p class="alert_file_npng_bt" id="alert_file_npng_bt">Pastikan file berformat jpg/png</p>
+                </div>
+                <p></p>
+                <div class="isi_box_transfer_manual">
+                    <div class="button" id="ubt" onclick="upload_bukti_transfer_manual('<?php echo $id_invoice; ?>', '<?php echo $data_norek['nama_bank']; ?>')">
+                        <p>Upload Bukti Transfer</p>
+                    </div>
+                    <div class="button" id="loading_ubt">
+                        <img src="../../assets/icons/loading-w.svg" alt="">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
     <!-- TRANSFER MANUAL -->
 
@@ -174,7 +176,7 @@ $data_norek = mysqli_fetch_assoc($select_norek);
     <?php include '../partials/header.php'; ?>
     <!-- HEADER -->
 
- 
+
 
     <div class="width">
         <div class="checkout">

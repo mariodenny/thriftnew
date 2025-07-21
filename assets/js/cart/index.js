@@ -1,10 +1,12 @@
 function checkout(id_product_cko) {
     var btn_cko = 'button_checkout' + id_product_cko;
     var load_cko = 'loading_checkout' + id_product_cko;
-
+    console.log(`idk what is thist -> ${btn_cko},${load_cko}`)
     var data_checkout_cart = new FormData();
     data_checkout_cart.append('id_product', id_product_cko);
     data_checkout_cart.append('tipe_checkout', 'keranjang');
+
+    console.log(`Data checkout carts : ${data_checkout_cart}`)
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 1) {
