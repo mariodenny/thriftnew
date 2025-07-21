@@ -99,10 +99,10 @@ if ($product_data) {
                 </div>
             </div>
             <div class="harga_varian_produk">
-                <p>Harga per/pcs</p>
+                <p>Harga</p>
                 <h1>Rp <span id="harga_varian_produk"><?php echo number_format($harga_diskon_fs, 0, ".", "."); ?></span></h1>
-                <p>Total Harga</p>
-                <h1>Rp <span id="total_harga_produk"><?php echo number_format($harga_diskon_fs, 0, ".", "."); ?></span></h1>
+                <!-- <p>Total Harga</p>
+                <h1>Rp <span id="total_harga_produk"><?php echo number_format($harga_diskon_fs, 0, ".", "."); ?></span></h1> -->
             </div>
 
             <input type="hidden" id="ukuran_harga_satuan_value" value="<?php echo $harga_diskon_fs; ?>">

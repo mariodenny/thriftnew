@@ -225,7 +225,9 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             */
+            background: #F3F4F6;
             min-height: 100vh;
             padding: 20px;
             line-height: 1.6;

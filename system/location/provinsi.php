@@ -13,12 +13,29 @@ curl_setopt_array($curl, array(
         "key: $rajaongkir_key"
     ),
 ));
+
 $res_provinsi = curl_exec($curl);
 $err_provinsi = curl_error($curl);
 curl_close($curl);
+
+$provinsi_isi_data = [];
+
 if ($err_provinsi) {
-    echo "cURL Error #:" . $err_provinsi;
+    // Simpan log atau tampilkan error jika perlu
+    error_log("RajaOngkir Error: " . $err_provinsi);
 } else {
     $provinsi_data = json_decode($res_provinsi, true);
-    $provinsi_isi_data = $provinsi_data['rajaongkir']['results'];
+
+    // Cek apakah index yang dibutuhkan tersedia
+    if (
+        isset($provinsi_data['rajaongkir']) &&
+        isset($provinsi_data['rajaongkir']['results']) &&
+        is_array($provinsi_data['rajaongkir']['results'])
+    ) {
+        $provinsi_isi_data = $provinsi_data['rajaongkir']['results'];
+    } else {
+        // Jika gagal ambil data valid, kosongkan dan optionally beri log
+        $provinsi_isi_data = [];
+        error_log("RajaOngkir response tidak valid atau quota habis.");
+    }
 }
