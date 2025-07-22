@@ -1,8 +1,10 @@
 <?php
 session_start();
 
+// print_r($_SESSION);
 include '../config.php';
-include '../system/location/provinsi.php';
+// include '../system/location/provinsi.php';
+// include '../system/location/kota.php';
 require_once '../assets/composer/midtrans-php-master/Midtrans.php';
 
 $id_invoice = $_GET['idinvoice'];
@@ -18,6 +20,68 @@ $harga_satuan = $harga_diskon_fs / $invoice_data['jumlah'];
 
 if (!$invoice_data) {
     header("Location: " . $url);
+}
+
+// Data user
+// $id_user = $_SESSION['login'];
+
+// $query_user = $server->query("SELECT nama, email, no_wa FROM users WHERE id = '$id_user'");
+// $data_user = $query_user->fetch_assoc();
+
+// // print
+
+require_once($_SERVER['DOCUMENT_ROOT'] . "/thriftnew/config.php");
+
+// Fungsi reusable untuk GET API
+function apiRequestGet($url, $headers = [])
+{
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => $headers,
+    ]);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    return [$response, $error];
+}
+
+// Ambil data provinsi
+$headers = ["key: $rajaongkir_key"];
+$url_provinsi = "https://rajaongkir.komerce.id/api/v1/destination/province";
+list($res_provinsi, $err_provinsi) = apiRequestGet($url_provinsi, $headers);
+
+$provinsi_isi_data = [];
+$kota_per_provinsi = [];
+
+if (!$err_provinsi) {
+    $provinsi_data = json_decode($res_provinsi, true);
+    if (isset($provinsi_data['data']) && is_array($provinsi_data['data'])) {
+        $provinsi_isi_data = $provinsi_data['data'];
+
+        // Ambil semua kota berdasarkan provinsi
+        foreach ($provinsi_isi_data as $provinsi) {
+            $prov_id = $provinsi['id'];
+            $url_kota = "https://rajaongkir.komerce.id/api/v1/destination/city/$prov_id";
+
+            list($res_kota, $err_kota) = apiRequestGet($url_kota, $headers);
+            if (!$err_kota) {
+                $kota_data = json_decode($res_kota, true);
+                if (isset($kota_data['data']) && is_array($kota_data['data'])) {
+                    $kota_per_provinsi[$prov_id] = $kota_data['data'];
+                }
+            }
+        }
+    }
 }
 
 // RAJA ONGKIR COST
@@ -80,6 +144,22 @@ $data_norek = mysqli_fetch_assoc($select_norek);
 </head>
 
 <body id="body">
+    <style>
+        .btn-primary {
+            background-color: #f13b7f;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            text-align: center;
+        }
+    </style>
     <!-- SETTING LOKASI -->
     <div class="setting_lokasi" id="setting_lokasi">
         <div class="isi_setting_lokasi">
@@ -88,18 +168,14 @@ $data_norek = mysqli_fetch_assoc($select_norek);
                 <div class="isi_form_provinsi_kota">
                     <select class="select" id="provinsi" onchange="changeProvinsi()">
                         <option value="" selected disabled hidden>Pilih Provinsi</option>
-                        <?php
-                        foreach ($provinsi_isi_data as $key_provinsi_isi_data => $value_provinsi_isi_data) {
-                        ?>
-                            <option value="<?php echo $value_provinsi_isi_data['province_id']; ?>"><?php echo $value_provinsi_isi_data['province']; ?></option>
-                        <?php
-                        }
-                        ?>
+                        <?php foreach ($provinsi_isi_data as $prov) { ?>
+                            <option value="<?= $prov['id']; ?>"><?= htmlspecialchars($prov['name']); ?></option>
+                        <?php } ?>
                     </select>
                 </div>
                 <div class="isi_form_provinsi_kota">
-                    <select class="select" id="kota">
-                        <option value="" selected disabled hidden>Pilih Kota</option>
+                    <select class="select" id="kota" disabled>
+                        <option selected disabled hidden>Pilih Kota</option>
                     </select>
                 </div>
             </div>
@@ -186,17 +262,24 @@ $data_norek = mysqli_fetch_assoc($select_norek);
                     <h5 id="ubah_alamat" onclick="ubahAlamat()">UBAH</h5>
                 </div>
                 <?php
-                if (!$invoice_data['kota'] == '') {
-                ?>
-                    <p><?php echo $invoice_data['alamat_lengkap']; ?>, <?php echo $kota_exp_li[1]; ?>, <?php echo $prov_exp_li[1]; ?>, Indonesia</p>
-                <?php
+                // Cek apakah alamat invoice tersedia
+                if (!empty($invoice_data['kota'])) {
+                    echo "<p>";
+                    echo htmlspecialchars($invoice_data['alamat_lengkap']) . ", ";
+                    echo htmlspecialchars($kota_exp_li[1]) . ", ";
+                    echo htmlspecialchars($prov_exp_li[1]) . ", Indonesia<br>";
+
+                    // Tambahkan info user dari session
+                    echo "Nama: " . htmlspecialchars($_SESSION['nama_lengkap'] ?? 'User') . "<br>";
+                    echo "Email: " . htmlspecialchars($_SESSION['email']) . "<br>";
+                    echo "WhatsApp: " . htmlspecialchars($_SESSION['whatsapp']);
+                    echo "</p>";
                 } else {
-                ?>
-                    <p>Alamat pengiriman belum ditentukan</p>
-                <?php
+                    echo "<p>Alamat pengiriman belum ditentukan</p>";
                 }
                 ?>
             </div>
+
             <div class="detail_checkout">
                 <h1>Produk Dipesan</h1>
                 <div class="box_detail_checkout">
@@ -268,43 +351,45 @@ $data_norek = mysqli_fetch_assoc($select_norek);
                     ?>
                 </div>
             </div>
+
+
             <div class="button_bayar">
-                <?php
-                if ($invoice_data['bukti_transfer'] == '') {
-                ?>
+                <?php if ($invoice_data['tipe_progress'] == 'Belum Bayar') { ?>
+                    <form method="POST" action="../../system/checkout/request-cancel.php" onsubmit="return confirm('Ajukan pembatalan pesanan?')">
+                        <input type="hidden" name="idinvoice" value="<?= $invoice_data['idinvoice'] ?>">
+                        <button class="button btn-primary" type="submit" style="margin-right:10px; color:white; font-weight:bold;">Batalkan Pesanan</button>
+                    </form>
+                <?php } ?>
+                <?php if ($invoice_data['tipe_progress'] == 'Menunggu Persetujuan Pembatalan') : ?>
+                    <div class="status-info">
+                        <p style="color: #FFA500; font-weight:bold;">Pesanan menunggu persetujuan pembatalan oleh admin.</p>
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($invoice_data['bukti_transfer'] == '') { ?>
                     <div class="box_bayar">
-                        <?php
-                        if ($nama_tipe_pembayaran == 'Midtrans') {
-                        ?>
+                        <?php if ($nama_tipe_pembayaran == 'Midtrans') { ?>
                             <div class="button" id="pay-button">
                                 <p>Bayar Sekarang</p>
                             </div>
-                        <?php
-                        }
-                        if ($nama_tipe_pembayaran == 'Manual') {
-                        ?>
+                        <?php } elseif ($nama_tipe_pembayaran == 'Manual') { ?>
                             <div class="button" onclick="pembayaran_manual_show()">
                                 <p>Bayar Sekarang</p>
                             </div>
-                        <?php
-                        }
-                        ?>
+                        <?php } ?>
                     </div>
-                <?php
-                } else {
-                ?>
+                <?php } else { ?>
                     <h1 class="p_mokf_manual">Menunggu Konfirmasi</h1>
-                <?php
-                }
-                ?>
-
+                <?php } ?>
             </div>
+
         </div>
     </div>
     <input type="hidden" id="id_invoice" value="<?php echo $id_invoice; ?>">
     <input type="hidden" id="berat_barang" value="<?php echo $berat_barang; ?>">
     <input type="hidden" id="jumlah_barang" value="<?php echo $invoice_data['jumlah']; ?>">
     <div id="res"></div>
+
 
     <script type="text/javascript">
         var payButton = document.getElementById('pay-button');
@@ -313,6 +398,33 @@ $data_norek = mysqli_fetch_assoc($select_norek);
             snap.pay('<?php echo $snapToken; ?>'); // Replace it with your transaction token
         });
     </script>
+
+    <script>
+        const dataKota = <?php echo json_encode($kota_per_provinsi); ?>;
+        console.log('====================================');
+        console.log(dataKota);
+        console.log('====================================');
+
+        function changeProvinsi() {
+            const provinsiId = document.getElementById('provinsi').value;
+            const kotaSelect = document.getElementById('kota');
+
+            kotaSelect.innerHTML = '<option selected disabled hidden>Pilih Kota</option>';
+            kotaSelect.disabled = true;
+
+            if (dataKota[provinsiId]) {
+                dataKota[provinsiId].forEach(kota => {
+                    const opt = document.createElement('option');
+                    opt.value = kota.city_id + ',' + kota.city_name;
+                    opt.textContent = kota.city_name;
+                    kotaSelect.appendChild(opt);
+                });
+                kotaSelect.disabled = false;
+            }
+        }
+    </script>
+
+
     <!-- CONTENT -->
 
     <!-- FOOTER -->

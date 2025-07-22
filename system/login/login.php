@@ -1,4 +1,6 @@
 <?php
+session_start(); // WAJIB di paling atas
+
 include '../../config.php';
 
 $email = mysqli_real_escape_string($server, $_POST['email']);
@@ -23,8 +25,14 @@ if ($cek_akun_data) {
         $encryption_key = "ecommerce";
         $encryption = openssl_encrypt($idakun_plain, $ciphering, $encryption_key, $options, $encryption_iv);
 
-        // Set Cookie
         setcookie("login", $encryption, time() + (86400 * 30), "/");
+
+        $_SESSION['user_id'] = $cek_akun_data['id'];
+        $_SESSION['email'] = $cek_akun_data['email'];
+        $_SESSION['tipe_akun'] = $cek_akun_data['tipe_akun'];
+        $_SESSION['whatsapp'] = $cek_akun_data['no_whatsapp'];
+        $_SESSION['nama_lengkap'] = $cek_akun_data['nama_lengkap'];
+
 
         // Redirect berdasarkan role
         if ($role == 'Admin') {
@@ -34,12 +42,10 @@ if ($cek_akun_data) {
         }
         exit;
     } else {
-        // Password salah
         header("Location: ../../login/?error=password");
         exit;
     }
 } else {
-    // Email tidak ditemukan
     header("Location: ../../login/?error=email");
     exit;
 }

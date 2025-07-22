@@ -1,39 +1,57 @@
-<option value="" selected disabled hidden>Pilih Kota</option>
 <?php
-include '../../config.php';
+require_once($_SERVER['DOCUMENT_ROOT'] . "/thriftnew/config.php");
 
-$exp_id_provinsi = explode(',', $_POST['id_provinsi']);
-$id_provinsi = $exp_id_provinsi[0];
+function apiGet($url, $headers = [])
+{
+    $ch = curl_init();
 
-$curl = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => $headers,
+    ]);
 
-curl_setopt_array($curl, array(
-    CURLOPT_URL => "https://api.rajaongkir.com/starter/city?province=$id_provinsi",
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_ENCODING => "",
-    CURLOPT_MAXREDIRS => 10,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => "GET",
-    CURLOPT_HTTPHEADER => array(
-        "key: $rajaongkir_key"
-    ),
-));
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
 
-$res_kota = curl_exec($curl);
-$err_kota = curl_error($curl);
+    return [$response, $error];
+}
 
-curl_close($curl);
+header('Content-Type: text/html; charset=UTF-8');
+
+echo '<option value="" selected disabled hidden>Pilih Kota</option>';
+
+$exp_id_provinsi = explode(',', $_POST['id_provinsi'] ?? '');
+$id_provinsi = trim($exp_id_provinsi[0] ?? '');
+
+if (!$id_provinsi || !is_numeric($id_provinsi)) {
+    echo '<option disabled>ID Provinsi tidak valid</option>';
+    exit;
+}
+
+$url = "https://rajaongkir.komerce.id/api/v1/destination/city/{$id_provinsi}";
+$headers = ["key: $rajaongkir_key"];
+
+list($res_kota, $err_kota) = apiGet($url, $headers);
 
 if ($err_kota) {
-    echo "cURL Error #:" . $err_kota;
+    echo "<option disabled>Terjadi kesalahan: $err_kota</option>";
 } else {
-    $kota_data_arr = json_decode($res_kota, true);
-    $kota_data = $kota_data_arr['rajaongkir']['results'];
-    foreach ($kota_data as $key_kota_data => $value_kota_data) {
-?>
-        <option value="<?php echo $value_kota_data['city_id'] . ',' . $value_kota_data['city_name']; ?>"><?php echo $value_kota_data['city_name']; ?></option>
-<?php
+    $data = json_decode($res_kota, true);
+    // print_r($data);
+    if (isset($data['data']) && is_array($data['data'])) {
+        foreach ($data['data'] as $kota) {
+            $id = htmlspecialchars($kota['city_id']);
+            $name = htmlspecialchars($kota['city_name']);
+            echo "<option value=\"{$id},{$name}\">{$name}</option>";
+        }
+    } else {
+        echo "<option disabled>Tidak ada data kota ditemukan</option>";
     }
 }
-?>

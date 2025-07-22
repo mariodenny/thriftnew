@@ -1,41 +1,46 @@
 <?php
-// RAJA ONGKIR PROVINSI
-$curl = curl_init();
-curl_setopt_array($curl, array(
-    CURLOPT_URL => "https://api.rajaongkir.com/starter/province",
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_ENCODING => "",
-    CURLOPT_MAXREDIRS => 10,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => "GET",
-    CURLOPT_HTTPHEADER => array(
-        "key: $rajaongkir_key"
-    ),
-));
+require_once($_SERVER['DOCUMENT_ROOT'] . "/thriftnew/config.php");
 
-$res_provinsi = curl_exec($curl);
-$err_provinsi = curl_error($curl);
-curl_close($curl);
+function apiRequestGet($url, $headers = [])
+{
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_ENCODING => "",
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => "GET",
+        CURLOPT_HTTPHEADER => $headers,
+    ]);
+
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    return [$response, $error];
+}
+
+// RAJA ONGKIR KOMERCE
+$headers = ["key: $rajaongkir_key"];
+$url = "https://rajaongkir.komerce.id/api/v1/destination/province";
+
+list($res_provinsi, $err_provinsi) = apiRequestGet($url, $headers);
 
 $provinsi_isi_data = [];
 
 if ($err_provinsi) {
-    // Simpan log atau tampilkan error jika perlu
     error_log("RajaOngkir Error: " . $err_provinsi);
 } else {
     $provinsi_data = json_decode($res_provinsi, true);
+    // print_r($provinsi_data);
 
-    // Cek apakah index yang dibutuhkan tersedia
-    if (
-        isset($provinsi_data['rajaongkir']) &&
-        isset($provinsi_data['rajaongkir']['results']) &&
-        is_array($provinsi_data['rajaongkir']['results'])
-    ) {
-        $provinsi_isi_data = $provinsi_data['rajaongkir']['results'];
+    if (isset($provinsi_data['data']) && is_array($provinsi_data['data'])) {
+        $provinsi_isi_data = $provinsi_data['data'];
     } else {
-        // Jika gagal ambil data valid, kosongkan dan optionally beri log
         $provinsi_isi_data = [];
-        error_log("RajaOngkir response tidak valid atau quota habis.");
+        error_log("Response Komerce RajaOngkir tidak valid.");
     }
 }
