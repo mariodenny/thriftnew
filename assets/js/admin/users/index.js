@@ -30,7 +30,7 @@ function hapus_akun() {
     xhttp.send(data_hapus_akun);
 }
 
-function show_edit_akun(id_user_ed, nama_lengkap_ed, email_ed, no_wa_ed, tipe_akun_ed) {
+function show_edit_akun(id_user_ed, nama_lengkap_ed, email_ed, no_wa_ed, tipe_akun_ed, password_ed, profile_ed) {
     nama_lengkap_edt.value = nama_lengkap_ed;
     email_edt.value = email_ed;
     no_wa_edt.value = no_wa_ed;
@@ -55,6 +55,14 @@ function simpan_edit_iklan() {
     data_edit_akun.append('no_wa_edt', document.getElementById('no_wa_edt').value);
     data_edit_akun.append('tipe_akun_edt', document.getElementById('tipe_akun_edt').value);
     data_edit_akun.append('id_user_edit_akun', document.getElementById('id_user_edit_akun').value);
+    data_edit_akun.append('password_edit', document.getElementById('password_edit').value)
+
+    // Tambah file foto jika ada
+    var fotoInput = document.querySelector('input[name="foto_profil"]');
+    if (fotoInput.files.length > 0) {
+        data_edit_akun.append('foto_profil', fotoInput.files[0]);
+    }
+
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 1) {
@@ -66,11 +74,11 @@ function simpan_edit_iklan() {
             text_ea.style.display = 'block';
             loading_ea.style.display = 'none';
             var getscriptres = document.getElementsByTagName('script');
-            for (var i = 0; i < getscriptres.length - 0; i++) {
-                if (getscriptres[i + 0].text != null) eval(getscriptres[i + 0].text);
+            for (var i = 0; i < getscriptres.length; i++) {
+                if (getscriptres[i].text != null) eval(getscriptres[i].text);
             }
         }
-    }
+    };
     xhttp.open('POST', '../../system/admin/users/edit-user.php', true);
     xhttp.send(data_edit_akun);
 }

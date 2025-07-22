@@ -76,6 +76,15 @@ $total_user_all_admin = mysqli_num_rows($select_user_all_admin);
                         <option value="Admin">Admin</option>
                     </select>
                 </div>
+                <div class="isi_form_edit_akun">
+                    <p>Password</p>
+                    <input type="password" class="input" id="password_edit" placeholder="password baru">
+                </div>
+                <div class="isi_form_edit_akun">
+                    <p>Foto Profil</p>
+                    <input type="file" name="foto_profil" accept="image/*" class="input">
+                    <small style="font-size: 12px; color: #666;">Hanya JPG, PNG. Maksimal 2MB.</small>
+                </div>
             </div>
             <div class="box_button_edit_akun">
                 <div class="button_cancel_edit_akun" onclick="batal_edit_iklan()">
