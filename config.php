@@ -6,6 +6,8 @@ if (session_status() == PHP_SESSION_NONE) {
 // GLOBAL URL
 //Masukkan url domain utama dengan http / https
 $url = "http://localhost/thriftnew/";
+define('BASE_URL', 'http://localhost/thriftnew/'); //buat constant
+
 // ini ganti dulu ke port 8888 pas mau di kasih ilangin 8888 nya
 // CONNECT SERVER
 $server = new mysqli(

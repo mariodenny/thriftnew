@@ -10,7 +10,7 @@ if (!empty($_FILES["ubah_logo_cf_hs"]["name"])) {
     unlink('../../../assets/icons/' . $logo);
     $expname1 = explode('.', $_FILES["ubah_logo_cf_hs"]["name"]);
     $ext1 = end($expname1);
-    $name1 = 'logo' . '.' . $ext1;
+    $name1 = 'Logo' . '.' . $ext1;
     $path1 = "../../../assets/icons/" . $name1;
     move_uploaded_file($_FILES["ubah_logo_cf_hs"]["tmp_name"], $path1);
     $nametodb1 = $name1;

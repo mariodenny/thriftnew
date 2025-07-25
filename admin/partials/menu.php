@@ -1,15 +1,20 @@
+<?php
+// require_once($_SERVER['DOCUMENT_ROOT'] . '/thriftnew/config.php');
+// echo BASE_URL;
+?>
 <!-- Tombol toggle untuk menu admin (Responsive) -->
 <div class="header_responsive_admin" onclick="show_box_menu_admin()">
   <i class="fas fa-bars"></i>
   <p>Menu Admin</p>
 </div>
 
+
 <!-- Box Menu Admin -->
 <div class="box_menu_admin" id="box_menu_admin">
   <div class="menu_admin">
     <!-- Profil Admin -->
     <div class="menu_profile_admin">
-      <img src="../../assets/icons/<?php echo ($logo); ?>" alt="Logo Admin !!">
+      <img src="/thriftnew/assets/icons/<?php echo ($logo); ?>" alt="Logo Admin">
       <p class="admin_name"><?= $profile_adm['nama_lengkap']; ?></p>
     </div>
 
@@ -136,13 +141,15 @@
 
       foreach ($menu_items as $item) {
         $active_class = ($page_admin === $item['page']) ? 'menu_list_isi_active' : 'menu_list_isi';
+        $full_url = BASE_URL . $item['url'];
+
         echo <<<HTML
-          <a href="{$url}{$item['url']}">
-            <div class="{$active_class}">
-              <div class="box_icon_menu_list_isi"><i class="fas {$item['icon']}"></i></div>
-              <p>{$item['title']}</p>
-            </div>
-          </a>
+      <a href="{$full_url}">
+        <div class="{$active_class}">
+          <div class="box_icon_menu_list_isi"><i class="fas {$item['icon']}"></i></div>
+          <p>{$item['title']}</p>
+        </div>
+      </a>
 HTML;
       }
       ?>
@@ -162,6 +169,8 @@ HTML;
           ['role' => 'admin', 'label' => 'Admin', 'icon' => 'fa-user-shield', 'page' => 'user_admin'],
           ['role' => 'user', 'label' => 'User', 'icon' => 'fa-user', 'page' => 'user_user'],
         ];
+
+
 
         foreach ($user_roles as $user) {
           $active_class = ($page_admin === $user['page']) ? 'menu_list_isi_active' : 'menu_list_isi';
