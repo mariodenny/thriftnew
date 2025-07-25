@@ -20,6 +20,7 @@ if (isset($_COOKIE['login_admin'])) {
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Pengaturan</title>
+    <!--update ini --->
     <link rel="icon" href="../../assets/icons/<?php echo $logo; ?>" type="image/svg">
     <link rel="stylesheet" href="../../assets/css/admin/settings/index.css">
 </head>
