@@ -32,6 +32,7 @@ if (isset($_COOKIE['login_admin'])) {
             <div class="isi_content_admin">
                 <!-- CONTENT -->
                 <div class="settings_adm">
+
                     <div class="menu_settings_adm">
                         <div class="box_menu_settings_adm">
                             <div class="isi_menu_settings_adm" id="p_header_setting">Header</div>
@@ -49,8 +50,8 @@ if (isset($_COOKIE['login_admin'])) {
                             <div class="box_logo_hs">
                                 <img src="../../assets/icons/<?php echo $logo; ?>" id="view_logo_hs">
                                 <div class="text_box_logo_hs">
-                                    <h1 onclick="c_ubah_logo()">Ubah Logo <i class="ri-pencil-fill"></i></h1>
-                                    <p>Pastikan logo berformat svg atau png dan aspect ratio 1:1</p>
+                                    <h1 onclick="c_ubah_logo()">Ubah Logo<i class="ri-pencil-fill"></i></h1>
+                                    <p>Pastikan Logoberformat svg atau png dan aspect ratio 1:1</p>
                                     <p id="err_foto_hs">File bukan format svg atau png</p>
                                 </div>
                                 <input type="file" id="ubah_logo_cf_hs" onchange="change_ubah_logo(event)" accept="image/*">

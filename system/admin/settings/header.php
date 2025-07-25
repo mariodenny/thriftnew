@@ -1,6 +1,8 @@
 <?php
 include '../../../config.php';
 
+
+
 $nama_perusahaan_hs = mysqli_real_escape_string($server, $_POST['nama_perusahaan_hs']);
 $placeh_search_hs = mysqli_real_escape_string($server, $_POST['placeh_search_hs']);
 
@@ -27,4 +29,6 @@ if ($update_header_setting) {
         }, 2000);
     </script>
 <?php
+} else {
+    echo "Query Error: " . $server->error;
 }

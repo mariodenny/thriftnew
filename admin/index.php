@@ -15,7 +15,7 @@ include '../config.php';
 
 // Cek koneksi database
 if (!isset($server) || !($server instanceof mysqli) || $server->connect_error) {
-    die("⛔ Fatal Error: Database connection error. Please check config.php. " . 
+    die("⛔ Fatal Error: Database connection error. Please check config.php. " .
         (isset($server) && $server->connect_error ? $server->connect_error : "Connection object not valid."));
 }
 
@@ -102,12 +102,13 @@ $js_chart_border_colors = json_encode($chart_border_colors);
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard Admin</title>
-    <link rel="icon" href="../assets/icons/<?php echo $logo; ?>" type="image/svg" />
+    <link rel="icon" href="../assets/icons/<?php print($logo); ?>" type="image/svg" />
     <link rel="stylesheet" href="../assets/css/admin/index.css" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -175,6 +176,7 @@ $js_chart_border_colors = json_encode($chart_border_colors);
             transition: transform 0.3s ease;
             cursor: default;
         }
+
         .isi_menu_jumlah_adm:hover {
             transform: translateY(-5px);
             box-shadow: 0 12px 20px rgba(255, 20, 147, 0.4);
@@ -189,12 +191,15 @@ $js_chart_border_colors = json_encode($chart_border_colors);
 
         .box_text_menu_jumlah_adm p {
             margin: 0;
-            font-size: 0.9em; /* kecilkan dari 1em */
+            font-size: 0.9em;
+            /* kecilkan dari 1em */
             opacity: 0.9;
         }
+
         .box_text_menu_jumlah_adm h1 {
             margin: 4px 0 0;
-            font-size: 1.6em; /* kecilkan dari 1.8em */
+            font-size: 1.6em;
+            /* kecilkan dari 1.8em */
             font-weight: 700;
         }
 
@@ -217,141 +222,148 @@ $js_chart_border_colors = json_encode($chart_border_colors);
         }
     </style>
 </head>
+
 <body>
-<div class="admin">
-    <?php include './partials/menu.php'; ?>
-    <div class="content_admin">
-        <h1 class="title_content_admin">Dashboard Admin</h1>
-        <div class="menu_jumlah_adm">
-            <div class="isi_menu_jumlah_adm">
-                <i class="ri-user-3-fill"></i>
-                <div class="box_text_menu_jumlah_adm">
-                    <p>Jumlah User</p>
-                    <h1><?php echo number_format($jumlah_user_adm); ?></h1>
+    <div class="admin">
+        <?php include './partials/menu.php'; ?>
+        <div class="content_admin">
+            <h1 class="title_content_admin">Dashboard Admin</h1>
+            <div class="menu_jumlah_adm">
+                <div class="isi_menu_jumlah_adm">
+                    <i class="ri-user-3-fill"></i>
+                    <div class="box_text_menu_jumlah_adm">
+                        <p>Jumlah User</p>
+                        <h1><?php echo number_format($jumlah_user_adm); ?></h1>
+                    </div>
+                </div>
+                <div class="isi_menu_jumlah_adm">
+                    <i class="ri-archive-fill"></i>
+                    <div class="box_text_menu_jumlah_adm">
+                        <p>Jumlah Produk</p>
+                        <h1><?php echo number_format($jumlah_produk_adm); ?></h1>
+                    </div>
+                </div>
+                <div class="isi_menu_jumlah_adm">
+                    <i class="ri-file-list-2-fill"></i>
+                    <div class="box_text_menu_jumlah_adm">
+                        <p>Jumlah Kategori</p>
+                        <h1><?php echo number_format($jumlah_kategori_adm); ?></h1>
+                    </div>
                 </div>
             </div>
-            <div class="isi_menu_jumlah_adm">
-                <i class="ri-archive-fill"></i>
-                <div class="box_text_menu_jumlah_adm">
-                    <p>Jumlah Produk</p>
-                    <h1><?php echo number_format($jumlah_produk_adm); ?></h1>
-                </div>
-            </div>
-            <div class="isi_menu_jumlah_adm">
-                <i class="ri-file-list-2-fill"></i>
-                <div class="box_text_menu_jumlah_adm">
-                    <p>Jumlah Kategori</p>
-                    <h1><?php echo number_format($jumlah_kategori_adm); ?></h1>
-                </div>
-            </div>
-        </div>
 
-        <div class="chart-container">
-            <canvas id="categorySalesChart"></canvas>
-        </div>
-        <?php
-// Hitung total penjualan semua kategori
-$total_penjualan = array_sum($chart_data);
-?>
-<div style="max-width: 900px; margin: 0 auto 40px auto; padding: 20px; background: #fff0f6; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);">
-    <h2 style="color: #34495e; font-weight: 700; margin-bottom: 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
-        Rincian Penjualan Per Kategori
-    </h2>
-    <ul style="list-style: none; padding: 0; margin: 0;">
-        <?php foreach ($category_sales_data as $index => $kategori): 
-            $jumlah = $kategori['total_sold'];
-            $persen = $total_penjualan ? round(($jumlah / $total_penjualan) * 100, 2) : 0;
-            $warna = $base_colors[$index % count($base_colors)];
-        ?>
-        <li style="margin-bottom: 12px; font-size: 1.1em; display: flex; align-items: center; gap: 12px; color: #333;">
-            <span style="display:inline-block; width: 20px; height: 20px; background-color: <?php echo $warna; ?>; border-radius: 50%;"></span>
-            <strong style="flex: 1;"><?php echo htmlspecialchars($kategori['category_name']); ?></strong>
-            <span style="color: #34495e; font-weight: 600;"><?php echo $persen; ?>%</span>
-        </li>
-        <?php endforeach; ?>
-    </ul>
-</div>
+            <div class="chart-container">
+                <canvas id="categorySalesChart"></canvas>
+            </div>
+            <?php
+            // Hitung total penjualan semua kategori
+            $total_penjualan = array_sum($chart_data);
+            ?>
+            <div style="max-width: 900px; margin: 0 auto 40px auto; padding: 20px; background: #fff0f6; border-radius: 12px; box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);">
+                <h2 style="color: #34495e; font-weight: 700; margin-bottom: 15px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                    Rincian Penjualan Per Kategori
+                </h2>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <?php foreach ($category_sales_data as $index => $kategori):
+                        $jumlah = $kategori['total_sold'];
+                        $persen = $total_penjualan ? round(($jumlah / $total_penjualan) * 100, 2) : 0;
+                        $warna = $base_colors[$index % count($base_colors)];
+                    ?>
+                        <li style="margin-bottom: 12px; font-size: 1.1em; display: flex; align-items: center; gap: 12px; color: #333;">
+                            <span style="display:inline-block; width: 20px; height: 20px; background-color: <?php echo $warna; ?>; border-radius: 50%;"></span>
+                            <strong style="flex: 1;"><?php echo htmlspecialchars($kategori['category_name']); ?></strong>
+                            <span style="color: #34495e; font-weight: 600;"><?php echo $persen; ?>%</span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            </div>
 
+        </div>
     </div>
-</div>
 
-<script>
-    const ctx = document.getElementById('categorySalesChart').getContext('2d');
-    const categorySalesChart = new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: <?php echo $js_chart_labels; ?>,
-            datasets: [{
-                label: 'Total Item Terjual',
-                data: <?php echo $js_chart_data; ?>,
-                backgroundColor: <?php echo $js_chart_background_colors; ?>,
-                borderColor: <?php echo $js_chart_border_colors; ?>,
-                borderWidth: 2,
-                hoverOffset: 30,
-                weight: 2,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: {
-                animateRotate: true,
-                animateScale: true
+    <script>
+        const ctx = document.getElementById('categorySalesChart').getContext('2d');
+        const categorySalesChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: <?php echo $js_chart_labels; ?>,
+                datasets: [{
+                    label: 'Total Item Terjual',
+                    data: <?php echo $js_chart_data; ?>,
+                    backgroundColor: <?php echo $js_chart_background_colors; ?>,
+                    borderColor: <?php echo $js_chart_border_colors; ?>,
+                    borderWidth: 2,
+                    hoverOffset: 30,
+                    weight: 2,
+                }]
             },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'right',
-                    labels: {
-                        font: {
-                            size: 14,
-                            weight: '600'
-                        },
-                        padding: 15,
-                        boxWidth: 20,
-                        boxHeight: 20,
-                        color: '#34495e',
-                        usePointStyle: true,
-                        pointStyle: 'circle',
-                    },
-                    maxHeight: 400,
-                    onClick: (e, legendItem, legend) => {
-                        const index = legendItem.index;
-                        const ci = legend.chart;
-                        const meta = ci.getDatasetMeta(0);
-                        const slice = meta.data[index];
-                        slice.hidden = !slice.hidden;
-                        ci.update();
-                    }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    animateRotate: true,
+                    animateScale: true
                 },
-                title: {
-    display: true,
-    text: 'Penjualan Per Kategori Produk',
-    font: {
-        size: 21,
-        weight: '900'
-    },
-    color: '#34495e'  
-},
-
-                tooltip: {
-                    enabled: true,
-                    callbacks: {
-                        label: function(context) {
-                            const label = context.label || '';
-                            const value = context.parsed || 0;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
-                            return `${label}: ${new Intl.NumberFormat('id-ID').format(value)} item (${percentage}%)`;
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            font: {
+                                size: 14,
+                                weight: '600'
+                            },
+                            padding: 15,
+                            boxWidth: 20,
+                            boxHeight: 20,
+                            color: '#34495e',
+                            usePointStyle: true,
+                            pointStyle: 'circle',
+                        },
+                        maxHeight: 400,
+                        onClick: (e, legendItem, legend) => {
+                            const index = legendItem.index;
+                            const ci = legend.chart;
+                            const meta = ci.getDatasetMeta(0);
+                            const slice = meta.data[index];
+                            slice.hidden = !slice.hidden;
+                            ci.update();
                         }
                     },
-                    backgroundColor: 'rgba(0,0,0,0.75)',
-                    titleFont: { size: 16, weight: '600' },
-                    bodyFont: { size: 14 }
+                    title: {
+                        display: true,
+                        text: 'Penjualan Per Kategori Produk',
+                        font: {
+                            size: 21,
+                            weight: '900'
+                        },
+                        color: '#34495e'
+                    },
+
+                    tooltip: {
+                        enabled: true,
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total ? ((value / total) * 100).toFixed(2) : 0;
+                                return `${label}: ${new Intl.NumberFormat('id-ID').format(value)} item (${percentage}%)`;
+                            }
+                        },
+                        backgroundColor: 'rgba(0,0,0,0.75)',
+                        titleFont: {
+                            size: 16,
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 14
+                        }
+                    }
                 }
             }
-        }
-    });
-</script>
+        });
+    </script>
 </body>
+
 </html>
