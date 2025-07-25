@@ -8,7 +8,7 @@ if (isset($_POST['idinvoice'])) {
 
     // Update invoice
     $query = "UPDATE invoice 
-              SET tipe_progress = 'Dibatalkan', waktu_dibatalkan = '$tanggal_batal'
+              SET tipe_progress = 'Permintaan_Dibatalkan', waktu_dibatalkan = '$tanggal_batal'
               WHERE idinvoice = '$idinvoice'";
 
     if ($server->query($query)) {
