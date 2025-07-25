@@ -1,7 +1,8 @@
 <?php
 include '../../config.php';
 
-$page_admin = 'user';
+$page_admin = 'user'; // This will likely be 'user_admin' or 'user_user' based on your menu.php,
+                      // but 'user' as a general page_admin for this script is fine.
 
 if (isset($_COOKIE['login_admin'])) {
     if ($akun_adm == 'false') {
@@ -12,6 +13,19 @@ if (isset($_COOKIE['login_admin'])) {
 }
 
 $tipe = isset($_GET['role']) ? $_GET['role'] : '';
+
+// Adjust $page_admin based on the 'role' to ensure correct menu highlighting
+if ($tipe === 'admin') {
+    $page_admin = 'user_admin';
+} elseif ($tipe === 'user') {
+    $page_admin = 'user_user';
+} else {
+    // If no role is specified, or an unknown role, you might default to 'user_user' or a general 'user' page.
+    // For this context, let's assume it should default to 'user_user' if no role is set.
+    $page_admin = 'user_user';
+}
+
+
 $filter_query = ($tipe !== '') ? "WHERE tipe_akun = '$tipe'" : "";
 
 $select_user_all_admin = $server->query("SELECT * FROM `akun` $filter_query ORDER BY `akun`.`id` DESC");
@@ -30,7 +44,6 @@ $total_user_all_admin = mysqli_num_rows($select_user_all_admin);
 </head>
 
 <body>
-    <!-- POPUP CONFIRM -->
     <div class="back_popup_confirm" id="confirm_hapus">
         <div class="popup_confirm">
             <div class="head_popup_confirm">
@@ -50,9 +63,6 @@ $total_user_all_admin = mysqli_num_rows($select_user_all_admin);
         </div>
         <input type="hidden" id="val_id_user">
     </div>
-    <!-- POPUP CONFIRM -->
-
-    <!-- POPUP EDIT AKUN -->
     <div class="box_edit_akun" id="box_edit_akun">
         <div class="edit_akun">
             <h1>Edit Akun User</h1>
@@ -73,8 +83,7 @@ $total_user_all_admin = mysqli_num_rows($select_user_all_admin);
                     <p>Tipe Akun</p>
                     <select class="input" id="tipe_akun_edt">
                         <option value="user">User</option>
-                        <option value="Admin">Admin</option>
-                    </select>
+                        <option value="admin">Admin</option> </select>
                 </div>
                 <div class="isi_form_edit_akun">
                     <p>Password</p>
@@ -98,17 +107,29 @@ $total_user_all_admin = mysqli_num_rows($select_user_all_admin);
         </div>
         <input type="hidden" id="id_user_edit_akun">
     </div>
-    <!-- POPUP EDIT AKUN -->
-
     <div class="admin">
         <?php include '../partials/menu.php'; ?>
         <div class="content_admin">
-            <h1 class="title_content_admin">Akun User</h1>
+            <h1 class="title_content_admin">Akun
+                <?php
+                // Display "Admin" or "User" based on the 'role' GET parameter
+                echo ($tipe === 'admin') ? 'Admin' : 'User';
+                ?>
+            </h1>
             <div class="isi_content_admin">
-                <!-- CONTENT -->
                 <div class="jumlah_users_admin">
-                    <h1>Jumlah User</h1>
-                    <h1><?php echo $total_user_all_admin; ?> User</h1>
+                    <h1>Jumlah
+                        <?php
+                        // Display "Admin" or "User" based on the 'role' GET parameter
+                        echo ($tipe === 'admin') ? 'Admin' : 'User';
+                        ?>
+                    </h1>
+                    <h1><?php echo $total_user_all_admin; ?>
+                        <?php
+                        // Display "User" always here, as it's a count of total filtered accounts
+                        echo ($tipe === 'admin') ? 'Admin' : 'User';
+                        ?>
+                    </h1>
                 </div>
                 <div class="all_users_admin">
                     <?php while ($data_all_user_admin = mysqli_fetch_assoc($select_user_all_admin)) { ?>
@@ -147,13 +168,11 @@ $total_user_all_admin = mysqli_num_rows($select_user_all_admin);
                         </div>
                     <?php } ?>
                 </div>
-                <!-- CONTENT -->
-            </div>
+                </div>
         </div>
     </div>
     <div id="res"></div>
 
-    <!-- JS -->
     <script src="../../assets/js/admin/users/index.js"></script>
 </body>
 

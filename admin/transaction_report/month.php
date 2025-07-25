@@ -317,7 +317,7 @@ function newDateFormatback($date)
     .formbold-form-input[type='date']::-webkit-datetime-edit-month-field,
     .formbold-form-input[type='date']::-webkit-datetime-edit-day-field,
     .formbold-form-input[type='date']::-webkit-datetime-edit-year-field {
-      color: rgba(83, 99, 135, 0.5);
+      color: rgba(13, 13, 14, 0.97);
     }
 
     .formbold-form-input:focus {

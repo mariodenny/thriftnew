@@ -141,7 +141,7 @@ function newDateFormatback($date)
     }
 
     select.formbold-form-input:focus {
-      background-color: var(--warna-putih);
+      background-color: var(--warna-utama);
       border-color: var(--warna-hover);
       box-shadow: 0 0 0 2px rgba(255, 105, 135, 0.3);
       outline: none;
@@ -187,6 +187,18 @@ function newDateFormatback($date)
       outline: none;
     }
 
+    /* NEW: Style for dropdown options */
+    select.formbold-form-input option {
+        background-color: var(--warna-soft); /* Background for options */
+        color: var(--warna-utama); /* Text color for options */
+        padding: 5px; /* Add some padding to options */
+    }
+    /* Optional: Style for option on hover/focus (might not work consistently across all browsers) */
+    select.formbold-form-input option:hover,
+    select.formbold-form-input option:focus {
+        background-color: var(--warna-utama); /* Background on hover/focus */
+        color: var(--warna-putih); /* Text color on hover/focus */
+    }
 
 
     /* Global reset */
@@ -288,20 +300,21 @@ function newDateFormatback($date)
     /* Form Input */
     .formbold-form-input {
       width: 100%;
-      padding: 13px 22px;
+      padding: 10px 20px;
       border-radius: 5px;
-      border: 1px solid #dde3ec;
-      background: #ffffff;
-      font-weight: 500;
+      border: 1px solid #ec407a;
+      background: #ffe6ef;
+      font-weight: 400;
+      /* normal, bukan bold */
       font-size: 16px;
-      color: #536387;
+      color: #ec407a;
       outline: none;
-      resize: none;
+      transition: all 0.3s ease;
     }
 
     .formbold-form-input::placeholder,
     select.formbold-form-input {
-      color: rgba(83, 99, 135, 0.5);
+      color: rgba(13, 13, 14, 0.91);
     }
 
     .formbold-form-input:focus {
@@ -357,7 +370,7 @@ function newDateFormatback($date)
       height: 20px;
       margin-right: 16px;
       margin-top: 2px;
-      border: 0.7px solid #dde3ec;
+      border: 0.7px solid #f3c6d3;
       border-radius: 3px;
     }
 
@@ -413,8 +426,6 @@ function newDateFormatback($date)
     <div class="content_admin">
       <h1 class="title_content_admin">Laporan Transaksi Admin</h1>
 
-      <!-- Author: FormBold Team -->
-      <!-- Learn More: https://formbold.com -->
       <form method="GET">
 
         <div class="formbold-input-flex">
@@ -511,12 +522,12 @@ function newDateFormatback($date)
             $where_filter = $where_filter ? " AND $where_filter" : "";
 
             $invoice = $server->query(
-              "SELECT a.*, b.nama_lengkap, c.judul, c.harga, d.nama AS kategori 
+              "SELECT a.*, b.nama_lengkap, c.judul, c.harga, d.nama AS kategori
    FROM invoice a
    LEFT JOIN akun b ON a.id_user = b.id
    LEFT JOIN iklan c ON a.id_iklan = c.id
    LEFT JOIN kategori d ON c.id_kategori = d.id
-   WHERE date(a.waktu) >= '" . $_GET['dt'] . "' 
+   WHERE date(a.waktu) >= '" . $_GET['dt'] . "'
      AND date(a.waktu) <= '" . $_GET['st'] . "'
      $where_filter"
             );
@@ -528,7 +539,6 @@ function newDateFormatback($date)
             $tot = 0;
             while ($data = mysqli_fetch_assoc($invoice)) {
             ?>
-              <!-- <?php print_r($data); ?> -->
               <tr>
                 <td class="text-center"><?= $no++ ?></td>
                 <td><?= newDateTime($data['waktu']) ?></td>
@@ -575,13 +585,11 @@ function newDateFormatback($date)
       </div>
     </div>
   </div>
-  <!-- JS -->
   <script src="../../assets/js/admin/transaction/index.js"></script>
   <script>
     $("[name='kategori']").val('<?= isset($_GET['kategori']) ? $_GET['kategori'] : '' ?>');
   </script>
 
-  <!-- JS -->
-</body>
+  </body>
 
 </html>
