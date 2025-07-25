@@ -6,14 +6,11 @@ $idproduk = $_POST['id_product'];
 
 // SELECT CART
 $select_cart = $server->query("SELECT * FROM `keranjang` WHERE `id_iklan`='$idproduk' AND `id_user`='$iduser'");
-print_r($select_cart);
 $cart_data = mysqli_fetch_assoc($select_cart);
-print_r($cart_data);
 
 // SELECT PRODUK
 $select_iklan = $server->query("SELECT * FROM `iklan` WHERE `id`='$idproduk'");
 $iklan_data = mysqli_fetch_assoc($select_iklan);
-print_r($iklan_data);
 
 // SELECT LOKASI USER
 $lokasi_user = $server->query("SELECT * FROM `lokasi_user` WHERE `id_user`='$iduser'");
@@ -33,10 +30,38 @@ if ($_POST['tipe_checkout'] == 'keranjang') {
     $diskon_k = $iklan_data['diskon'];
     $warna_k = $_POST['warna_k_val'];
     $ukuran_k = $_POST['ukuran_k_val'];
+}
 
-    if ($jumlah > $iklan_data['stok']) {
-        echo "<script>alert('Jumlah melebihi stok yang tersedia! Silakan kurangi jumlah produk.'); window.history.back();</script>";
+// PENGECEKAN STOK LEBIH DETAIL
+if ($iklan_data) {
+    $stok_tersedia = $iklan_data['stok'];
+
+    $query_terjual = "SELECT SUM(jumlah) as total_terjual FROM `invoice` 
+                     WHERE `id_iklan`='$idproduk' 
+                     AND `warna_i`='$warna_k' 
+                     AND `ukuran_i`='$ukuran_k'
+                     AND `tipe_progress` NOT IN ('dibatalkan', 'cancelled')";
+    $result_terjual = $server->query($query_terjual);
+    $data_terjual = mysqli_fetch_assoc($result_terjual);
+    $total_terjual = $data_terjual['total_terjual'] ? $data_terjual['total_terjual'] : 0;
+
+    $exclude_user = ($_POST['tipe_checkout'] == 'keranjang') ? " AND `id_user` != '$iduser'" : "";
+    $query_keranjang = "SELECT SUM(jumlah) as total_keranjang FROM `keranjang` 
+                       WHERE `id_iklan`='$idproduk' 
+                       AND `warna_k`='$warna_k' 
+                       AND `ukuran_k`='$ukuran_k' $exclude_user";
+    $result_keranjang = $server->query($query_keranjang);
+    $data_keranjang = mysqli_fetch_assoc($result_keranjang);
+    $total_di_keranjang = $data_keranjang['total_keranjang'] ? $data_keranjang['total_keranjang'] : 0;
+
+    $stok_tersisa = $stok_tersedia - $total_terjual - $total_di_keranjang;
+
+    if ($stok_tersisa < $jumlah) {
+        echo "<script>alert('Stok tidak mencukupi! Stok tersisa: $stok_tersisa item. Silakan kurangi jumlah produk.'); window.history.back();</script>";
         exit;
+    } else {
+        // LANGSUNG KURANGI STOK
+        $server->query("UPDATE `iklan` SET `stok` = `stok` - $jumlah WHERE `id`='$id_iklan'");
     }
 }
 
@@ -68,38 +93,63 @@ if ($cek_invoice_data) {
         $alengkap_inv = $lokasi_user_data['alamat_lengkap'];
 
         $kota_tujuan = $lokasi_user_data['id_kota'];
-        // JNE
+
+        // CALL API RAJAONGKIR (ERROR DIABAIKAN)
         $curl_jne = curl_init();
         curl_setopt_array($curl_jne, array(
-            CURLOPT_URL => "https://api.rajaongkir.com/starter/cost",
+            CURLOPT_URL => "https://rajaongkir.komerce.id/api/v1/calculate/district/domestic-cost",
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "origin=$kota_id_toko&destination=$kota_tujuan&weight=$berat_barang&courier=$kurir",
+            CURLOPT_POSTFIELDS => "origin=$kota_id_toko&destination=$kota_tujuan&weight=$berat_barang&courier=$kurir&price=lowest",
             CURLOPT_HTTPHEADER => array(
-                "content-type: application/x-www-form-urlencoded",
-                "key: $rajaongkir_key"
+                "key: $rajaongkir_key",
+                "Content-Type: application/x-www-form-urlencoded"
             ),
         ));
         $response_cost_jne = curl_exec($curl_jne);
         $err_cost_jne = curl_error($curl_jne);
         curl_close($curl_jne);
+
         if ($err_cost_jne) {
-            echo "cURL Error #:" . $err_cost_jne;
+            $harga_ongkir = 0;
+            $kurir_ongkir = $kurir;
+            $kurir_layanan_ongkir = 'REG';
+            $etd_ongkir = '1-2';
         } else {
             $data_cost_jne = json_decode($response_cost_jne, true);
-            $data_cost_jne_arr = $data_cost_jne['rajaongkir']['results']['0']['costs'];
-            $kurir_ongkir = $data_cost_jne['rajaongkir']['results']['0']['code'];
-            $kurir_layanan_ongkir = $data_cost_jne_arr[$id_kurir]['service'];
-            $etd_ongkir = $data_cost_jne_arr[$id_kurir]['cost']['0']['etd'];
-            $harga_ongkir =  $data_cost_jne_arr[$id_kurir]['cost']['0']['value'] * $jumlah;
+            if (isset($data_cost_jne['data']) && !empty($data_cost_jne['data'])) {
+                $jne_data = null;
+                foreach ($data_cost_jne['data'] as $courier_data) {
+                    if (strtolower($courier_data['courier']) == strtolower($kurir)) {
+                        $jne_data = $courier_data;
+                        break;
+                    }
+                }
+                if ($jne_data && isset($jne_data['costs']) && !empty($jne_data['costs'])) {
+                    $selected_service = $jne_data['costs'][$id_kurir] ?? $jne_data['costs'][0];
+                    $kurir_ongkir = $jne_data['courier'];
+                    $kurir_layanan_ongkir = $selected_service['service'];
+                    $etd_ongkir = $selected_service['cost'][0]['etd'];
+                    $harga_ongkir = $selected_service['cost'][0]['value'] * $jumlah;
+                } else {
+                    $harga_ongkir = 0;
+                    $kurir_ongkir = $kurir;
+                    $kurir_layanan_ongkir = 'REG';
+                    $etd_ongkir = '1-2';
+                }
+            } else {
+                $harga_ongkir = 0;
+                $kurir_ongkir = $kurir;
+                $kurir_layanan_ongkir = 'REG';
+                $etd_ongkir = '1-2';
+            }
         }
-        $insert_checkout = $server->query("INSERT INTO `invoice`(`id_iklan`, `id_user`, `jumlah`, `warna_i`, `ukuran_i`, `harga_i`, `diskon_i`, `kurir`, `id_kurir`, `layanan_kurir`, `etd`, `harga_ongkir`, `provinsi`, `kota`, `alamat_lengkap`, `waktu`, `tipe_progress`) VALUES ('$id_iklan', '$iduser', '$jumlah', '$warna_k', '$ukuran_k', '$harga_k', '$diskon_k', '$kurir_ongkir', '$id_kurir', '$kurir_layanan_ongkir', '$etd_ongkir', '$harga_ongkir', '$prov_inv', '$kota_inv', '$alengkap_inv', '$time', '$tipe_progress')");
+
+        $insert_checkout = $server->query("INSERT INTO `invoice`(`id_iklan`, `id_user`, `jumlah`, `warna_i`, `ukuran_i`, `harga_i`, `diskon_i`, `kurir`, `id_kurir`, `layanan_kurir`, `etd`, `harga_ongkir`, `provinsi`, `kota`, `alamat_lengkap`, `waktu`, `tipe_progress`) 
+            VALUES ('$id_iklan', '$iduser', '$jumlah', '$warna_k', '$ukuran_k', '$harga_k', '$diskon_k', '$kurir_ongkir', '$id_kurir', '$kurir_layanan_ongkir', '$etd_ongkir', '$harga_ongkir', '$prov_inv', '$kota_inv', '$alengkap_inv', '$time', '$tipe_progress')");
     } else {
-        $insert_checkout = $server->query("INSERT INTO `invoice`(`id_iklan`, `id_user`, `jumlah`, `warna_i`, `ukuran_i`, `harga_i`, `diskon_i`, `kurir`, `id_kurir`, `waktu`, `tipe_progress`) VALUES ('$id_iklan', '$iduser', '$jumlah', '$warna_k', '$ukuran_k', '$harga_k', '$diskon_k', '$kurir', '$id_kurir', '$time', '$tipe_progress')");
+        $insert_checkout = $server->query("INSERT INTO `invoice`(`id_iklan`, `id_user`, `jumlah`, `warna_i`, `ukuran_i`, `harga_i`, `diskon_i`, `kurir`, `id_kurir`, `waktu`, `tipe_progress`) 
+            VALUES ('$id_iklan', '$iduser', '$jumlah', '$warna_k', '$ukuran_k', '$harga_k', '$diskon_k', '$kurir', '$id_kurir', '$time', '$tipe_progress')");
     }
     $delete_cart_ck = $server->query("DELETE FROM `keranjang` WHERE `id_iklan`='$idproduk' AND `id_user`='$iduser'");
     if ($insert_checkout || $delete_cart_ck) {
@@ -113,3 +163,4 @@ if ($cek_invoice_data) {
 <?php
     }
 }
+?>

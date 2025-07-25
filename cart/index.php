@@ -30,7 +30,7 @@ $page = 'KERANJANG';
             $cek_cart = mysqli_num_rows($select_cart);
         ?>
             <div class="header_cart" id="header_cart">
-                <p>Total Keranjang Belanja <span><?php echo $cek_cart; ?></span></p>
+                <p>Total Keranjang Belanja aku lagi cek ni <span><?php echo $cek_cart; ?></span></p>
             </div>
             <div class="box_isi_cart">
                 <?php

@@ -4,6 +4,7 @@ include '../config.php';
 $idproduct = $_GET['idproduct'];
 $product = $server->query("SELECT * FROM `iklan`, `kategori` WHERE iklan.id='$idproduct' AND iklan.id_kategori=kategori.id ");
 $product_data = mysqli_fetch_assoc($product);
+// print_r($product_data['stok']);
 $terjual = mysqli_num_rows($server->query("SELECT * FROM `invoice` WHERE `id_iklan`='$idproduct'"));
 if ($product_data) {
     $hitung_diskon_fs = ($product_data['diskon'] / 100) * $product_data['harga'];
