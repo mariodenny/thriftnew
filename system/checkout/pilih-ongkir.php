@@ -1,104 +1,178 @@
 <?php
-include '../../config.php';
+// Mock version - no need for config.php or real API calls
+// include '../../config.php';
 
 // Input validation and sanitization
-$kota_tujuan = filter_input(INPUT_POST, 'id_kota_tujuan_v', FILTER_SANITIZE_NUMBER_INT);
-$berat_barang = filter_input(INPUT_POST, 'berat_barang', FILTER_SANITIZE_NUMBER_INT);
-$jumlah_barang = filter_input(INPUT_POST, 'jumlah_barang', FILTER_SANITIZE_NUMBER_INT);
+$kota_tujuan = filter_input(INPUT_POST, 'id_kota_tujuan_v', FILTER_SANITIZE_NUMBER_INT) ?: 23; // Default Jakarta
+$berat_barang = filter_input(INPUT_POST, 'berat_barang', FILTER_SANITIZE_NUMBER_INT) ?: 1000; // Default 1kg
+$jumlah_barang = filter_input(INPUT_POST, 'jumlah_barang', FILTER_SANITIZE_NUMBER_INT) ?: 1; // Default 1 item
 
 if (!$kota_tujuan || !$berat_barang || !$jumlah_barang) {
     echo '<div class="error-message">Data tidak valid. Silakan coba lagi.</div>';
     exit;
 }
 
-class ShippingCalculator
+class MockShippingCalculator
 {
-    private $rajaongkir_key;
-    private $kota_id_toko;
+    private $mock_data;
 
-    public function __construct($key, $kota_id)
+    public function __construct()
     {
-        $this->rajaongkir_key = $key;
-        $this->kota_id_toko = $kota_id;
+        // Mock shipping data for different couriers and services
+        $this->mock_data = [
+            'jne' => [
+                'code' => 'jne',
+                'name' => 'Jalur Nugraha Ekakurir (JNE)',
+                'costs' => [
+                    [
+                        'service' => 'REG',
+                        'description' => 'Layanan Reguler',
+                        'cost' => [
+                            [
+                                'value' => 12000,
+                                'etd' => '2-3',
+                                'note' => ''
+                            ]
+                        ]
+                    ],
+                    [
+                        'service' => 'OKE',
+                        'description' => 'Ongkos Kirim Ekonomis',
+                        'cost' => [
+                            [
+                                'value' => 8000,
+                                'etd' => '3-5',
+                                'note' => ''
+                            ]
+                        ]
+                    ],
+                    [
+                        'service' => 'YES',
+                        'description' => 'Yakin Esok Sampai',
+                        'cost' => [
+                            [
+                                'value' => 18000,
+                                'etd' => '1-1',
+                                'note' => ''
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'tiki' => [
+                'code' => 'tiki',
+                'name' => 'Citra Van Titipan Kilat (TIKI)',
+                'costs' => [
+                    [
+                        'service' => 'REG',
+                        'description' => 'Regular Service',
+                        'cost' => [
+                            [
+                                'value' => 11000,
+                                'etd' => '2-3',
+                                'note' => ''
+                            ]
+                        ]
+                    ],
+                    [
+                        'service' => 'ECO',
+                        'description' => 'Economy Service',
+                        'cost' => [
+                            [
+                                'value' => 7500,
+                                'etd' => '4-6',
+                                'note' => ''
+                            ]
+                        ]
+                    ],
+                    [
+                        'service' => 'ONS',
+                        'description' => 'Over Night Service',
+                        'cost' => [
+                            [
+                                'value' => 22000,
+                                'etd' => '1-1',
+                                'note' => ''
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            'pos' => [
+                'code' => 'pos',
+                'name' => 'POS Indonesia (POS)',
+                'costs' => [
+                    [
+                        'service' => 'Paket Kilat Khusus',
+                        'description' => 'Paket Kilat Khusus',
+                        'cost' => [
+                            [
+                                'value' => 9500,
+                                'etd' => '1-2',
+                                'note' => ''
+                            ]
+                        ]
+                    ],
+                    [
+                        'service' => 'Express Next Day',
+                        'description' => 'Express Next Day',
+                        'cost' => [
+                            [
+                                'value' => 16000,
+                                'etd' => '1-2',
+                                'note' => ''
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ];
     }
 
-    private function createCurlHandle($courier, $destination, $weight)
+    private function calculatePriceVariation($basePrice, $destination, $weight)
     {
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => "https://api.rajaongkir.com/starter/cost",
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 10, // Reduced timeout
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => "origin={$this->kota_id_toko}&destination={$destination}&weight={$weight}&courier={$courier}",
-            CURLOPT_HTTPHEADER => [
-                "content-type: application/x-www-form-urlencoded",
-                "key: {$this->rajaongkir_key}"
-            ],
-        ]);
-        return $ch;
+        // Add some variation based on destination and weight
+        $destinationMultiplier = 1 + (($destination % 10) * 0.1); // 1.0 to 1.9
+        $weightMultiplier = 1 + (($weight / 1000) * 0.2); // Weight factor
+
+        return intval($basePrice * $destinationMultiplier * $weightMultiplier);
     }
 
     public function getAllShippingCosts($destination, $weight, $quantity)
     {
-        $couriers = ['jne', 'tiki', 'pos'];
-        $multiHandle = curl_multi_init();
-        $curlHandles = [];
-
-        // Initialize all curl handles for parallel execution
-        foreach ($couriers as $courier) {
-            $ch = $this->createCurlHandle($courier, $destination, $weight);
-            $curlHandles[$courier] = $ch;
-            curl_multi_add_handle($multiHandle, $ch);
-        }
-
-        // Execute all requests in parallel
-        $running = null;
-        do {
-            curl_multi_exec($multiHandle, $running);
-            curl_multi_select($multiHandle);
-        } while ($running > 0);
-
         $results = [];
 
-        // Process results
-        foreach ($couriers as $courier) {
-            $response = curl_multi_getcontent($curlHandles[$courier]);
-            $error = curl_error($curlHandles[$courier]);
+        // Simulate API response delay (optional)
+        // usleep(500000); // 0.5 second delay
 
-            if (!$error && $response) {
-                $data = json_decode($response, true);
-                if (isset($data['rajaongkir']['results'][0]['costs'])) {
-                    $results[$courier] = $this->processShippingData(
-                        $data['rajaongkir']['results'][0],
-                        $quantity
-                    );
-                }
+        foreach ($this->mock_data as $courier => $courierData) {
+            // Randomly skip some couriers occasionally to simulate API issues
+            if (rand(1, 100) <= 5) { // 5% chance to skip
+                continue;
             }
 
-            curl_multi_remove_handle($multiHandle, $curlHandles[$courier]);
-            curl_close($curlHandles[$courier]);
+            $results[$courier] = $this->processShippingData($courierData, $quantity, $destination, $weight);
         }
 
-        curl_multi_close($multiHandle);
         return $results;
     }
 
-    private function processShippingData($courierData, $quantity)
+    private function processShippingData($courierData, $quantity, $destination = 0, $weight = 1000)
     {
         $services = [];
         $courierCode = strtoupper($courierData['code']);
 
         foreach ($courierData['costs'] as $index => $cost) {
+            // Calculate price variation based on destination and weight
+            $basePrice = $cost['cost'][0]['value'];
+            $adjustedPrice = $this->calculatePriceVariation($basePrice, $destination, $weight);
+
             $services[] = [
                 'courier' => $courierCode,
                 'service' => $cost['service'],
                 'description' => $cost['description'],
                 'etd' => $cost['cost'][0]['etd'],
-                'price' => $cost['cost'][0]['value'] * $quantity,
+                'price' => $adjustedPrice * $quantity,
                 'index' => $index
             ];
         }
@@ -107,9 +181,12 @@ class ShippingCalculator
     }
 }
 
-// Initialize calculator
-$calculator = new ShippingCalculator($rajaongkir_key, $kota_id_toko);
+// Initialize mock calculator
+$calculator = new MockShippingCalculator();
 $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_barang, $jumlah_barang);
+
+// Add mock indicator for development
+$isMockMode = true;
 
 // Display results
 ?>
@@ -119,7 +196,7 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pilihan Pengiriman</title>
+    <title>Pilihan Pengiriman <?= $isMockMode ? '(Mock Mode)' : '' ?></title>
 </head>
 
 <body>
@@ -127,6 +204,11 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
         <div class="shipping-header">
             <h2>🚚 Pilih Metode Pengiriman</h2>
             <p>Pilih kurir dan layanan pengiriman terbaik untuk pesanan Anda</p>
+            <?php if ($isMockMode): ?>
+                <div class="mock-indicator">
+                    🧑‍💻 Mode Development - Data simulasi
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="shipping-options">
@@ -193,6 +275,18 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
                 <p>Mohon periksa kembali alamat tujuan atau hubungi customer service.</p>
             </div>
         <?php endif; ?>
+
+        <?php if ($isMockMode): ?>
+            <div class="mock-info">
+                <h4>🔧 Info Development:</h4>
+                <ul>
+                    <li>Kota Tujuan ID: <?= $kota_tujuan ?></li>
+                    <li>Berat Barang: <?= $berat_barang ?> gram</li>
+                    <li>Jumlah Barang: <?= $jumlah_barang ?> pcs</li>
+                    <li>Harga dihitung dengan variasi berdasarkan ID kota dan berat</li>
+                </ul>
+            </div>
+        <?php endif; ?>
     </div>
 
     <style>
@@ -201,6 +295,7 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
             --success-color: #10B981;
             --warning-color: #F59E0B;
             --danger-color: #EF4444;
+            --info-color: #3B82F6;
             --gray-50: #F9FAFB;
             --gray-100: #F3F4F6;
             --gray-200: #E5E7EB;
@@ -225,8 +320,6 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-             */
             background: #F3F4F6;
             min-height: 100vh;
             padding: 20px;
@@ -271,6 +364,16 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
         .shipping-header p {
             opacity: 0.9;
             font-size: 14px;
+        }
+
+        .mock-indicator {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 12px;
+            font-size: 12px;
+            display: inline-block;
         }
 
         .shipping-options {
@@ -401,6 +504,35 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
             border-radius: 50%;
         }
 
+        .mock-info {
+            background: var(--gray-50);
+            border-top: 1px solid var(--gray-200);
+            padding: 20px 24px;
+            font-size: 13px;
+            color: var(--gray-600);
+        }
+
+        .mock-info h4 {
+            color: var(--info-color);
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .mock-info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .mock-info li {
+            padding: 2px 0;
+        }
+
+        .mock-info li:before {
+            content: "→ ";
+            color: var(--info-color);
+            font-weight: bold;
+        }
+
         .no-shipping {
             text-align: center;
             padding: 60px 20px;
@@ -464,6 +596,10 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
             .selection-indicator {
                 right: 16px;
             }
+
+            .mock-info {
+                padding: 16px 20px;
+            }
         }
 
         /* Loading animation */
@@ -514,6 +650,9 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
             setTimeout(() => {
                 event.currentTarget.style.transform = '';
             }, 150);
+
+            // Log selection in console for debugging
+            console.log('Selected shipping option:', selectedOption);
         }
 
         // Auto-select first option (recommended)
@@ -523,6 +662,9 @@ $allShippingOptions = $calculator->getAllShippingCosts($kota_tujuan, $berat_bara
                 firstOption.click();
             }
         });
+
+        // Mock mode indicator in console
+        console.log('🧑‍💻 Running in Mock Mode - RajaOngkir API not called');
     </script>
 </body>
 
